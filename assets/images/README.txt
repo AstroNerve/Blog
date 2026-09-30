@@ -1,0 +1,11 @@
+Replaceable image sources used by the website:
+- logo.jpg
+- home-bg.jpg
+- about-bg.jpg
+- contact-bg.jpg
+- merch-bg.jpg
+- about-card.jpg
+- hoodie.jpg
+- tshirt.jpg
+- cap.jpg
+- mug.jpg
