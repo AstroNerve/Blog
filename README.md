@@ -1,26 +1,21 @@
-# AstroNerve Gaming Website
+# AstroNerve Gaming — Reconstructed Web App
 
-A standalone HTML/CSS/JavaScript recreation inspired by the supplied AstroNerve Gaming mockup.
+A responsive, installable vanilla HTML/CSS/JavaScript reconstruction of the AstroNerve Gaming experience.
 
-## Open locally
-1. Extract the ZIP.
-2. Open `index.html` in a browser.
-3. No build system or package installation is required.
+## Included
+- Responsive desktop/tablet/mobile layout
+- Reconstructed hero sections using cleaned visual crops from the supplied artwork
+- Modern navigation with mobile menu
+- Working merch catalogue, search, filters, quick-view modal and persistent cart
+- Front-end checkout flow with local demo order creation
+- Login / account creation demo using localStorage
+- Google sign-in placeholder that points to the configuration requirements
+- Contact form validation and local draft storage
+- PWA manifest + service worker for installability/offline shell
+- Scroll-reveal animations and accessible button/label structure
+- Configuration checklist in `CONFIG_REQUIRED.txt`
 
-## Structure
-- `index.html` — Home page
-- `about.html` — About page
-- `contact.html` — Contact page
-- `merch.html` — Merch page
-- `css/style.css` — All shared styling
-- `js/site.js` — Shared navigation, contact demo and cart demo
-- `assets/images/` — All replaceable image sources
+## Run
+Open `index.html` directly for the main experience. For full PWA/service-worker behavior, serve the folder from a local HTTP server.
 
-## Replacing images
-Keep the same filenames and replace the files inside `assets/images/`, or edit the `src` / CSS `background-image` paths in the HTML/CSS.
-
-## Contact form
-The form is intentionally front-end only. Connect it to your preferred backend, Formspree, Supabase, email service, etc. before production use.
-
-## Merch cart
-The demo cart uses browser `localStorage` only. It does not process payments.
+No real payment, authentication, social, email, analytics or shipping services are connected until the values in `site-config.js` are replaced and the corresponding provider code is wired in.

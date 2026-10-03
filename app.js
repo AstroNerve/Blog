@@ -1,47 +1,38 @@
-const PRODUCTS={
- hoodie:{id:'hoodie',name:'HOODIE',price:499,img:'assets/merch_card_hoodie.jpg'},
- tshirt:{id:'tshirt',name:'T-SHIRT',price:299,img:'assets/merch_card_tshirt.jpg'},
- cap:{id:'cap',name:'CAP',price:199,img:'assets/merch_card_cap.jpg'},
- mug:{id:'mug',name:'MUG',price:149,img:'assets/merch_card_mug.jpg'}
+const PRODUCTS = {
+  hoodie:{id:'hoodie',name:'AstroNerve Hoodie',price:499,img:'assets/hoodie.jpg',tag:'Squad gear'},
+  tshirt:{id:'tshirt',name:'AstroNerve T-Shirt',price:299,img:'assets/tshirt.jpg',tag:'Everyday loadout'},
+  cap:{id:'cap',name:'AstroNerve Cap',price:199,img:'assets/cap.jpg',tag:'Headwear'},
+  mug:{id:'mug',name:'AstroNerve Mug',price:149,img:'assets/mug.jpg',tag:'Desk gear'}
 };
-let cart=JSON.parse(localStorage.getItem('astronerve_cart')||'{}');
-function saveCart(){localStorage.setItem('astronerve_cart',JSON.stringify(cart));renderCart()}
-function addToCart(id){if(!PRODUCTS[id])return;cart[id]=(cart[id]||0)+1;saveCart();openCart()}
-function removeFromCart(id){delete cart[id];saveCart()}
-function changeQty(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart()}
+const cfg=window.ASTRO_CONFIG||{};
+let cart=JSON.parse(localStorage.getItem('astronerve_cart_v2')||'{}');
+let toastTimer;
+const money=n=>new Intl.NumberFormat('en-ZA',{style:'currency',currency:cfg.commerce?.currency||'ZAR',maximumFractionDigits:0}).format(n);
+function saveCart(){localStorage.setItem('astronerve_cart_v2',JSON.stringify(cart));renderCart();updateCartCount()}
 function cartCount(){return Object.values(cart).reduce((a,b)=>a+b,0)}
-function money(n){return 'R'+n.toLocaleString('en-ZA')}
-function renderCart(){
- const box=document.querySelector('.cart-items'); if(!box)return;
- const ids=Object.keys(cart);
- document.querySelectorAll('[data-cart-count]').forEach(e=>e.textContent=cartCount());
- if(!ids.length){box.innerHTML='<div class="empty">Your cart is empty.<br>Add some squad gear from the merch page.</div>';document.querySelector('[data-total]').textContent=money(0);return}
- let total=0;
- box.innerHTML=ids.map(id=>{const p=PRODUCTS[id],q=cart[id];total+=p.price*q;return `<div class="cart-item"><img src="${p.img}" alt="${p.name}"><div><strong>${p.name}</strong><br><small>${money(p.price)} each</small><div class="qty"><button onclick="changeQty('${id}',-1)">−</button><span>${q}</span><button onclick="changeQty('${id}',1)">+</button></div></div><button class="remove" onclick="removeFromCart('${id}')">Remove</button></div>`}).join('');
- document.querySelector('[data-total]').textContent=money(total)
-}
-function openCart(){document.querySelector('.drawer')?.classList.add('open');renderCart()}
-function closeCart(){document.querySelector('.drawer')?.classList.remove('open')}
-function initCart(){
- document.body.insertAdjacentHTML('beforeend',`<button class="cart-fab" onclick="openCart()">CART <span>(<b data-cart-count>0</b>)</span></button><aside class="drawer"><button class="close" onclick="closeCart()">×</button><h2>YOUR CART</h2><div class="cart-items"></div><div class="cart-total">TOTAL <span style="float:right" data-total>R0</span></div><button class="checkout" onclick="checkout()">CHECKOUT</button></aside>`);renderCart()
-}
-function checkout(){
- const n=cartCount(); if(!n){alert('Your cart is empty.');return}
- alert('Demo checkout: '+n+' item(s) are ready. Connect your preferred payment provider here.');
-}
-function login(e){e.preventDefault();const email=document.querySelector('#email').value.trim();const pass=document.querySelector('#password').value;if(!email||!pass){setStatus('Please enter your email and password.');return}localStorage.setItem('astronerve_user',JSON.stringify({email}));setStatus('Login successful. Welcome back, '+email+'.');}
-function signup(e){e.preventDefault();const email=document.querySelector('#email').value.trim();const pass=document.querySelector('#password').value;if(!email||pass.length<6){setStatus('Use a valid email and a password of at least 6 characters.');return}localStorage.setItem('astronerve_user',JSON.stringify({email}));setStatus('Account created. You are now signed in.');}
-function googleLogin(){setStatus('Google authentication is ready for OAuth credentials. Add your Google Client ID/provider configuration to enable live Google sign-in.');}
-function setStatus(t){const el=document.querySelector('.status');if(el)el.textContent=t}
-function contactSubmit(e){e.preventDefault();const f=e.currentTarget;const status=f.querySelector('.form-status');status.textContent='Message captured locally. Connect your email/API endpoint to send it for real.';f.reset()}
-function init(){
- initCart();
- const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
- document.querySelectorAll('.nav .link').forEach(link=>{
-   const target=(link.getAttribute('href')||'').split('/').pop().toLowerCase();
-   if(target===page) link.classList.add('active');
- });
- const f=document.querySelector('.contact-form');
- if(f)f.addEventListener('submit',contactSubmit);
-}
+function cartTotal(){return Object.entries(cart).reduce((t,[id,q])=>t+(PRODUCTS[id]?.price||0)*q,0)}
+function updateCartCount(){document.querySelectorAll('[data-cart-count]').forEach(el=>el.textContent=cartCount())}
+function addToCart(id){if(!PRODUCTS[id])return;cart[id]=(cart[id]||0)+1;saveCart();openCart();toast(`${PRODUCTS[id].name} added to your loadout.`)}
+function changeQty(id,d){if(!PRODUCTS[id])return;cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];saveCart()}
+function removeItem(id){delete cart[id];saveCart();toast('Item removed from your cart.')}
+function openCart(){document.querySelector('.cart-overlay')?.classList.add('open');document.querySelector('.cart-drawer')?.classList.add('open');document.body.classList.add('no-scroll');renderCart()}
+function closeCart(){document.querySelector('.cart-overlay')?.classList.remove('open');document.querySelector('.cart-drawer')?.classList.remove('open');document.body.classList.remove('no-scroll')}
+function renderCart(){const box=document.querySelector('.cart-items');if(!box)return;const ids=Object.keys(cart);updateCartCount();if(!ids.length){box.innerHTML='<div class="empty-cart"><strong>Your loadout is empty.</strong>Add some AstroNerve gear to continue.</div>';const total=document.querySelector('[data-cart-total]');if(total)total.textContent=money(0);return}box.innerHTML=ids.map(id=>{const p=PRODUCTS[id],q=cart[id];return `<article class="cart-item"><img src="${p.img}" alt="${p.name}"><div><h4>${p.name}</h4><small>${money(p.price)} each</small><div class="qty"><button type="button" data-action="qty" data-id="${id}" data-delta="-1">−</button><span>${q}</span><button type="button" data-action="qty" data-id="${id}" data-delta="1">+</button></div></div><button class="remove" type="button" data-action="remove" data-id="${id}">Remove</button></article>`}).join('');const total=document.querySelector('[data-cart-total]');if(total)total.textContent=money(cartTotal())}
+function injectCart(){document.body.insertAdjacentHTML('beforeend',`<div class="cart-overlay" data-close-cart></div><aside class="cart-drawer" aria-label="Shopping cart"><div class="drawer-head"><h2>Your Loadout</h2><button class="close-btn" data-close-cart aria-label="Close cart">×</button></div><div class="cart-items"></div><div class="drawer-foot"><div class="total-row"><span>Total</span><span data-cart-total>R0</span></div><button class="btn btn-primary checkout-btn" data-checkout>Continue to checkout</button></div></aside>`);document.querySelectorAll('[data-close-cart]').forEach(e=>e.addEventListener('click',closeCart));document.querySelector('.cart-items').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id;if(b.dataset.action==='qty')changeQty(id,Number(b.dataset.delta));if(b.dataset.action==='remove')removeItem(id)});document.querySelector('[data-checkout]').addEventListener('click',openCheckout);renderCart()}
+function injectCartButton(){const actions=document.querySelector('.header-actions');if(actions&&!actions.querySelector('[data-open-cart]'))actions.insertAdjacentHTML('afterbegin','<button class="cart-btn" data-open-cart aria-label="Open cart"><span class="cart-label">CART</span><span class="cart-count" data-cart-count>0</span></button>');document.querySelector('[data-open-cart]')?.addEventListener('click',openCart)}
+function openCheckout(){if(!cartCount()){toast('Your cart is empty.');return}closeCart();document.querySelector('#checkoutModal')?.classList.add('open');renderCheckout()}
+function renderCheckout(){const wrap=document.querySelector('#checkoutSummary');if(!wrap)return;wrap.innerHTML=Object.entries(cart).map(([id,q])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${PRODUCTS[id].name} × ${q}</span><strong>${money(PRODUCTS[id].price*q)}</strong></div>`).join('')+`<div style="display:flex;justify-content:space-between;padding-top:14px;font-weight:900"><span>Total</span><strong>${money(cartTotal())}</strong></div>`}
+function finishCheckout(e){e.preventDefault();const form=e.currentTarget;const name=form.name.value.trim();const email=form.email.value.trim();if(!name||!email){toast('Add your name and email to continue.');return}const order='AN-'+Date.now().toString().slice(-8);localStorage.setItem('astronerve_last_order',JSON.stringify({order,name,email,total:cartTotal(),items:cart}));cart={};saveCart();document.querySelector('#checkoutModal')?.classList.remove('open');toast(`Order ${order} created as a demo. Connect a payment provider to take payment.`)}
+function toast(msg){clearTimeout(toastTimer);const el=document.querySelector('.toast');if(!el)return;el.textContent=msg;el.classList.add('show');toastTimer=setTimeout(()=>el.classList.remove('show'),3200)}
+function setupNav(){const page=document.body.dataset.page||'';document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===page)a.classList.add('active')});const menu=document.querySelector('[data-menu]');const mobile=document.querySelector('.mobile-nav');menu?.addEventListener('click',()=>mobile?.classList.toggle('open'));mobile?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mobile.classList.remove('open')))}
+function setupSocials(){document.querySelectorAll('[data-social]').forEach(a=>{const key=a.dataset.social;const url=cfg.social?.[key];if(url){a.href=url;a.target='_blank';a.rel='noopener'}else{a.addEventListener('click',e=>{e.preventDefault();toast(`Add the ${key} URL in site-config.js before publishing.`)})}})}
+function setupContact(){const f=document.querySelector('[data-contact-form]');if(!f)return;f.addEventListener('submit',e=>{e.preventDefault();const email=f.email.value.trim();if(!f.name.value.trim()||!email||!f.message.value.trim()){toast('Please complete all required fields.');return}const payload={name:f.name.value.trim(),email,message:f.message.value.trim(),createdAt:new Date().toISOString()};localStorage.setItem('astronerve_contact_draft',JSON.stringify(payload));f.reset();toast('Message saved locally. Add an email/API endpoint in site-config.js to send it live.')})}
+function setupAuth(){const form=document.querySelector('[data-auth-form]');if(!form)return;const modeInput=form.querySelector('[name=mode]');document.querySelectorAll('[data-auth-mode]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-auth-mode]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');modeInput.value=btn.dataset.authMode;form.querySelector('[data-submit]').textContent=btn.dataset.authMode==='login'?'LOG IN':'CREATE ACCOUNT'}));form.addEventListener('submit',e=>{e.preventDefault();const email=form.email.value.trim(),pass=form.password.value;if(!email||pass.length<6){toast('Use a valid email and at least 6 characters for the password.');return}localStorage.setItem('astronerve_user',JSON.stringify({email,signedIn:true,mode:modeInput.value}));toast(modeInput.value==='login'?'Welcome back to AstroNerve.':'Squad account created.');setTimeout(()=>location.href='index.html',700)});document.querySelector('[data-google]')?.addEventListener('click',()=>{if(cfg.auth?.googleClientId)toast('Google OAuth configuration detected; connect your provider flow here.');else toast('Google sign-in needs your Google OAuth Client ID. See CONFIG_REQUIRED.txt.')})}
+function setupFilters(){const grid=document.querySelector('[data-products]');if(!grid)return;const cards=[...grid.querySelectorAll('[data-product]')];const filters=[...document.querySelectorAll('[data-filter]')];const search=document.querySelector('[data-search]');function apply(){const active=document.querySelector('[data-filter].active')?.dataset.filter||'all';const term=(search?.value||'').toLowerCase().trim();cards.forEach(card=>{const p=PRODUCTS[card.dataset.product];const matchesCat=active==='all'||p.tag.toLowerCase().includes(active);const matchesSearch=!term||p.name.toLowerCase().includes(term)||p.tag.toLowerCase().includes(term);card.hidden=!(matchesCat&&matchesSearch)})}filters.forEach(b=>b.addEventListener('click',()=>{filters.forEach(x=>x.classList.remove('active'));b.classList.add('active');apply()}));search?.addEventListener('input',apply);grid.addEventListener('click',e=>{const add=e.target.closest('[data-add]');if(add)addToCart(add.dataset.add);const quick=e.target.closest('[data-quick]');if(quick)openProduct(quick.dataset.quick)})}
+function openProduct(id){const p=PRODUCTS[id];if(!p)return;const modal=document.querySelector('#quickModal');if(!modal)return;modal.querySelector('[data-quick-image]').src=p.img;modal.querySelector('[data-quick-title]').textContent=p.name;modal.querySelector('[data-quick-price]').textContent=money(p.price);modal.querySelector('[data-quick-desc]').textContent=`${p.tag} from the AstroNerve squad collection. Add it to your loadout when you're ready.`;modal.querySelector('[data-quick-add]').onclick=()=>{addToCart(id);modal.classList.remove('open')};modal.classList.add('open')}
+function setupModals(){document.querySelectorAll('[data-modal-close]').forEach(b=>b.addEventListener('click',()=>b.closest('.modal-wrap').classList.remove('open')));document.querySelectorAll('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}))}
+function setupReveal(){const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>obs.observe(el))}
+let deferredInstall;
+function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.querySelector('[data-install]')?.classList.add('show')});document.querySelectorAll('[data-install]').forEach(btn=>btn.addEventListener('click',async()=>{if(!deferredInstall){toast('Use your browser menu and choose Add to Home Screen / Install.');return}deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null}));}
+function init(){setupNav();setupSocials();injectCartButton();injectCart();setupContact();setupAuth();setupFilters();setupModals();setupReveal();setupInstall();updateCartCount();document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear())}
 document.addEventListener('DOMContentLoaded',init);

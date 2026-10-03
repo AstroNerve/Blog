@@ -1,0 +1,59 @@
+ASTRONERVE GAMING — LIVE CONFIGURATION NEEDED
+==============================================
+
+The reconstructed web app intentionally does not invent real account/service details. Before publishing, provide or connect the following:
+
+1. SOCIAL ACCOUNTS
+   - YouTube channel URL
+   - Discord invite/server URL
+   - TikTok profile URL
+   - X/Twitter profile URL (if used)
+
+2. CONTACT
+   - Official business/contact email
+   - WhatsApp number or official support link (optional)
+   - Physical/business address (only if you want it publicly displayed)
+   - Business hours (if applicable)
+
+3. AUTHENTICATION
+   - Google OAuth Client ID
+   - OAuth redirect/authorized origins for the production domain
+   - A real authentication backend/database if accounts must work across devices
+   - Password reset / email verification provider
+
+4. MERCH / PAYMENTS
+   - Final product names, SKUs, stock quantities and prices
+   - Product shipping rules and delivery regions
+   - Payment provider (for example PayFast, Stripe or another provider available to you)
+   - Public API/payment key and secure server-side payment/webhook endpoint
+   - Order notification email
+   - Returns/refund policy
+
+5. CONTACT FORM
+   - Email/API endpoint that receives contact submissions
+   - Spam protection / CAPTCHA if required
+
+6. ANALYTICS (OPTIONAL)
+   - Analytics measurement ID
+   - Privacy/consent configuration if analytics or advertising is enabled
+
+7. BRAND / LEGAL
+   - Final privacy policy URL
+   - Terms of service URL
+   - Store/returns policy URL
+   - Final favicon/app icons for PWA installation
+   - Production domain
+
+8. COMMUNITY / CODM CONTENT (OPTIONAL)
+   - Official community rules
+   - Tournament/squad application form URL
+   - Any official CODM community/social links you want featured
+
+FILES TO EDIT
+-------------
+- `site-config.js` contains the main placeholders.
+- `app.js` contains the front-end demo logic and should be connected to your chosen backend/provider for production services.
+
+IMPORTANT
+---------
+The current login, checkout and contact flows are intentionally front-end/demo flows. They are functional for interface testing but should NOT be treated as secure production authentication, payment processing or message delivery until connected to real backend services.
